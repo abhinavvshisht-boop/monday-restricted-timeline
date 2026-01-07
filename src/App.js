@@ -77,17 +77,20 @@ export default function App() {
       to: dates.end.toISOString().split("T")[0]
     });
 
-    const mutation = `
-      mutation {
-        change_column_value(
-          item_id: ${subitemId},
-          column_id: "timerange_mkzck13j",
-          value: ${JSON.stringify(value)}
-        ) {
-          id
-        }
-      }
-    `;
+    const SUBITEM_BOARD_ID = 18394308597;
+
+   const mutation = `
+  mutation {
+    change_column_value(
+      board_id: ${SUBITEM_BOARD_ID},
+      item_id: ${subitemId},
+      column_id: "timerange_mkzck13j",
+      value: ${JSON.stringify(value)}
+    ) {
+      id
+    }
+  }
+`;
 
     await monday.api(mutation);
     monday.execute("notice", {
