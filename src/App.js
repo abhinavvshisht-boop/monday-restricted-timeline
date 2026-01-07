@@ -81,7 +81,7 @@ export default function App() {
       mutation {
         change_column_value(
           item_id: ${subitemId},
-          column_id: "timerange_mkzccs2v",
+          column_id: "timerange_mkzck13j",
           value: ${JSON.stringify(value)}
         ) {
           id
