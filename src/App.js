@@ -1,8 +1,16 @@
 import React, { useEffect, useState } from "react";
 import mondaySdk from "monday-sdk-js";
 import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const monday = mondaySdk();
+
+/* 🟢 Helper to avoid date shift */
+const toMondayDate = (date) => {
+  const safe = new Date(date);
+  safe.setUTCHours(12, 0, 0, 0); // ⬅️ KEY FIX
+  return safe.toISOString().split("T")[0];
+};
 
 export default function App() {
   const [context, setContext] = useState(null);
@@ -48,7 +56,7 @@ export default function App() {
     const res = await monday.api(query);
     const item = res.data.items[0];
 
-    // 🔹 CHANGE THIS ID to your Parent Timeline column ID
+    // 🔹 Parent timeline column ID
     const parentTimelineColumnId = "timerange_mkzc2yy4";
 
     const timelineColumn = item.column_values.find(
@@ -67,34 +75,36 @@ export default function App() {
     setSubitems(item.subitems);
   };
 
-  /* 4️⃣ Save Subitem Timeline */
+  /* 4️⃣ Save Subitem Timeline (FIXED) */
   const saveSubitemTimeline = async (subitemId) => {
     const dates = selectedDates[subitemId];
     if (!dates?.start || !dates?.end) return;
 
     const value = JSON.stringify({
-      from: dates.start.toISOString().split("T")[0],
-      to: dates.end.toISOString().split("T")[0]
+      from: toMondayDate(dates.start),
+      to: toMondayDate(dates.end)
     });
 
+    // 🔹 Subitems board ID
     const SUBITEM_BOARD_ID = 18394308597;
 
-   const mutation = `
-  mutation {
-    change_column_value(
-      board_id: ${SUBITEM_BOARD_ID},
-      item_id: ${subitemId},
-      column_id: "timerange_mkzck13j",
-      value: ${JSON.stringify(value)}
-    ) {
-      id
-    }
-  }
-`;
+    const mutation = `
+      mutation {
+        change_column_value(
+          board_id: ${SUBITEM_BOARD_ID},
+          item_id: ${subitemId},
+          column_id: "timerange_mkzck13j",
+          value: ${JSON.stringify(value)}
+        ) {
+          id
+        }
+      }
+    `;
 
     await monday.api(mutation);
+
     monday.execute("notice", {
-      message: "Timeline updated",
+      message: "Subitem timeline updated",
       type: "success"
     });
   };
